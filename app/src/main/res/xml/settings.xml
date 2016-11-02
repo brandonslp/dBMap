@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Captura">
+        <EditTextPreference
+            android:key="edtsettings_starttime"
+            android:title="Tiempo de captura"
+            android:dialogTitle="milisegundos"
+            android:inputType="number"
+            android:dialogIcon="@android:drawable/ic_menu_edit"
+            android:defaultValue="3"
+            />
+        <EditTextPreference
+            android:key="edtsettings_timelap"
+            android:title="Tiempo de tasa de muestreo"
+            android:dialogTitle="milisegundos"
+            android:inputType="number"
+            android:dialogIcon="@android:drawable/ic_menu_edit"
+            android:defaultValue="500"
+            />
+        <EditTextPreference
+            android:key="edtsettings_db"
+            android:title="dB considerado ruido"
+            android:dialogTitle="-dB silencio | ruido +dB "
+            android:inputType="number|numberDecimal|numberSigned"
+            android:dialogIcon="@android:drawable/ic_menu_edit"
+            android:defaultValue="25"
+            />
+        <EditTextPreference
+            android:key="edtsettings_amp"
+            android:title="Amplitud de referencia"
+            android:dialogTitle="Este valor sera utulizado para obtener los dB del sonido"
+            android:inputType="number|numberDecimal"
+            android:dialogIcon="@android:drawable/ic_menu_edit"
+            android:defaultValue="12000.0"
+            />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Mapa">
+        <EditTextPreference
+            android:key="edtsettings_radio"
+            android:title="radio de referencia"
+            android:dialogTitle="Determinar zona de impacto, en metros"
+            android:inputType="number|numberDecimal"
+            android:dialogIcon="@android:drawable/ic_menu_edit"
+            android:defaultValue="100"
+            />
+    </PreferenceCategory>
+</PreferenceScreen>

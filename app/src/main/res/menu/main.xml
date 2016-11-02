@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:apps="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_settings"
+        android:title="Settings"
+        android:icon="@drawable/ic_settings"
+        android:orderInCategory="100"
+        />
+    <item
+        android:id="@+id/menu_loadmap"
+        android:title="Mapa"
+        android:orderInCategory="200"
+        />
+
+    <item
+        android:id="@+id/menu_sync"
+        android:title="Cargar al servidor"
+        android:orderInCategory="200"
+        />
+</menu>
