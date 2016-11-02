@@ -139,7 +139,13 @@ public class MainActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return null;
         }
-        return locationManager.getLastKnownLocation(provider);
+        try{
+            Log.v("Brandon-lp","Location -> "+locationManager.getLastKnownLocation(provider));
+            return locationManager.getLastKnownLocation(provider);
+        }catch (NullPointerException e){
+            Log.v("Brandon-lp","Location -> "+locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER));
+            return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
     }
 
     @Override
