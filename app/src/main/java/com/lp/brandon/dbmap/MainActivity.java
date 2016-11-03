@@ -160,7 +160,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 startActivity(i);
             }
             if (item.getItemId()==R.id.menu_sync){
-                new Sync(this).sync_news();
+                //new Sync(this).sync_news();
+                new OkPostRequest(this).execute();
             }
         }
         return super.onOptionsItemSelected(item);

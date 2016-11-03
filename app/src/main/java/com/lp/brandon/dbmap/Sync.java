@@ -6,16 +6,20 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.NameValuePair;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.HttpClient;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
+import cz.msebera.android.httpclient.protocol.HTTP;
+import cz.msebera.android.httpclient.util.EntityUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -30,37 +34,70 @@ import java.util.List;
  */
 public class Sync {
     private Context context;
-    List<List<NameValuePair>> items;
-    List<NameValuePair> nameValuePairList;
-    private DbController controller;
 
+    private DbController controller;
+    List<JSONObject> params;
     public Sync(Context context) {
         this.context = context;
         controller = new DbController(context);
     }
 
     private void cargar(){
-        try{
-            List<MarkerdBEntity> entities= controller.getAllNoSend();
-            items = new ArrayList<List<NameValuePair>>();
-            for (MarkerdBEntity m : entities){
-                nameValuePairList = new ArrayList<NameValuePair>();
-                nameValuePairList.add(new BasicNameValuePair("user","nleal"));
-                nameValuePairList.add(new BasicNameValuePair("time",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString()));
-                Log.v("Brandon-lp","time -> "+new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString());
-                nameValuePairList.add(new BasicNameValuePair("lat",m.getLatitude()));
-                nameValuePairList.add(new BasicNameValuePair("lng",m.getLongitude()));
-                items.add(nameValuePairList);
+        params = new ArrayList<>();
+        List<MarkerdBEntity> list = controller.getAll();
+        JSONObject data;
+        for (MarkerdBEntity m:list) {
+            data = new JSONObject();
+            try {
+                data.put("user", "nleal");
+                data.put("time", new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString());
+                data.put("lat", m.getLatitude());
+                data.put("lng", m.getLongitude());
+                params.add(data);
+            }catch (JSONException e){
+                params=null;
+                break;
             }
-        }catch (NullPointerException e){
-            Toast.makeText(context,"No hay registros para sincronizar",Toast.LENGTH_SHORT).show();
         }
     }
 
+
+
     protected void sync_news(){
         cargar();
-        class Enviar extends AsyncTask<List<List<NameValuePair>>,Void,String> {
+        class Enviar extends AsyncTask<List<JSONObject>,Void,String>{
 
+            public void HttpPost(List<JSONObject> params) {
+                HttpPost httpPost = new HttpPost("http://190.144.171.172/tracker/store.php");
+                //httpPost.setHeader(headerName, headerValue);
+                //if (content != null && type != null)
+                httpPost.setHeader("content-type","application/json");
+                HttpResponse response = null;
+                HttpClient httpClient = new DefaultHttpClient();
+                String result = null;
+                if (params!=null){
+                    for (JSONObject data:params) {
+                        try {
+                            Log.v("Brandon-lp","data ->"+data.toString());
+                            StringEntity entity = new StringEntity(data.toString(), HTTP.UTF_8);
+                            httpPost.setEntity(entity);
+                            response = httpClient.execute(httpPost);
+                            HttpEntity entity1 = response.getEntity();
+                            result = EntityUtils.toString(entity1);
+                            Log.v("Brandon-lp","Result -> "+result);
+                        } catch (UnsupportedEncodingException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (ClientProtocolException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            // TODO Auto-generated catch block
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
 
             private ProgressDialog progressDialog;
             @Override
@@ -73,33 +110,9 @@ public class Sync {
             }
 
             @Override
-            protected String doInBackground(List<List<NameValuePair>>... params) {
+            protected String doInBackground(List<JSONObject>... params) {
+                HttpPost(params[0]);
 
-                List<List<NameValuePair>> items = params[0];
-                HttpClient httpClient = new DefaultHttpClient();
-                HttpPost httpPost = new HttpPost("http://190.144.171.172/tracker/store.php");
-                HttpResponse response;
-                HttpEntity entity;
-                for (List<NameValuePair> x :items) {
-                    try {
-                        Log.v("Brandon-lp","Enviando -> "+ x.get(0).toString() + "->"+x.get(0).getValue());
-                        httpPost.setEntity(new UrlEncodedFormEntity(x));
-                        Log.v("Brandon-lp","URI -> "+ httpPost.getURI());
-                        response = httpClient.execute(httpPost);
-                        entity = response.getEntity();
-                        Log.v("Brandon-lp","El resultado fue -> "+ EntityUtils.toString(entity));
-                    } catch (UnsupportedEncodingException e) {
-                        cancel(true);
-                        Log.v("brandon-lp","Error de encoding");
-                    } catch (ClientProtocolException e) {
-                        cancel(true);
-                        Log.v("brandon-lp", "error de client");
-                    } catch (IOException e) {
-                        cancel(true);
-                        Log.v("brandon-lp", "Error de escritura");
-                    }
-
-                }
                 return "Sincronizacion Completa";
             }
 
@@ -114,11 +127,10 @@ public class Sync {
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
                 progressDialog.cancel();
-                controller.changeStatus();
                 Toast.makeText(context,s,Toast.LENGTH_SHORT).show();
             }
         }
         Enviar enviar = new Enviar();
-        enviar.execute(items);
+        enviar.execute(params);
     }
 }
