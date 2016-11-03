@@ -47,11 +47,10 @@ public class OkPostRequest {
             request = new Request.Builder()
                             .url("http://190.144.171.172/tracker/store.php")
                             .post(body)
-                            .method("POST",body)
                             .build();
             try {
                 response = client.newCall(request).execute();
-                Log.v("Brandon-lp","Response -> "+response.message());
+                Log.v("Brandon-lp","Response -> "+response.body());
             } catch (IOException e) {
                 Log.v("Brandon-lp","Exploto en el call");
                 e.printStackTrace();
