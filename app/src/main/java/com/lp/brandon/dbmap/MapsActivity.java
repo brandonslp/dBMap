@@ -85,27 +85,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private LatLng getLocation() {
-        LocationManager locationManager = (LocationManager) getSystemService(this.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria,false);
-        Log.v("Brandon-lp","Criteria provider -> "+provider);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.v("Brandon-lp","faltan permisos de localizacion");
-            return null;
-        }
-        try{
-            Log.v("Brandon-lp","Location -> "+locationManager.getLastKnownLocation(provider));
-            return new LatLng(locationManager.getLastKnownLocation(provider).getLatitude(),locationManager.getLastKnownLocation(provider).getLongitude());
-        }catch (NullPointerException e){
-            return new LatLng(locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER).getLatitude(),locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER).getLongitude());
-        }
+        double latitude = getIntent().getDoubleExtra("latitude",0.0);
+        double longitude = getIntent().getDoubleExtra("longitude",0.0);
+        Log.v("Brandon-lp","recibe ->"+latitude+","+longitude);
+        return new LatLng(latitude,longitude);
     }
 
     private void addMarkers(){

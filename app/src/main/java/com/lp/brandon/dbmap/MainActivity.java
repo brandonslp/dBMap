@@ -157,6 +157,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
             if (item.getItemId()==R.id.menu_loadmap){
                 Intent i = new Intent().setClass(MainActivity.this, MapsActivity.class);
+                i.putExtra("latitude",mylocation.getLatitude());
+                i.putExtra("longitude",mylocation.getLongitude());
                 startActivity(i);
             }
             if (item.getItemId()==R.id.menu_sync){

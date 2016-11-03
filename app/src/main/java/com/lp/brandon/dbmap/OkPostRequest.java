@@ -33,55 +33,41 @@ public class OkPostRequest {
 
 
 
-    private void send(){
-        List<MarkerdBEntity> list = dbController.getAll();
-        Request request;
-        Response response;
-        for (MarkerdBEntity m:list) {
-            String url = String.format("http://190.144.171.172/tracker/store.php?user=%s&time=%s&lat=%s&lng=%s"
-            ,"nleal",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString(),m.getLatitude(),m.getLongitude());
-            Log.v("Brandon-lp","La url quedo -> "+url);
-            request = new Request.Builder()
-                            .url(url)
-                            .get()
-                            .build();
-            try {
-                response = client.newCall(request).execute();
-                Log.v("Brandon-lp","Response -> "+response.body().string());
-            } catch (IOException e) {
-                Log.v("Brandon-lp","Exploto en el call");
-                e.printStackTrace();
-            }
-        }
-    }
 
-    /*private void send(){
-
-        RequestBody body;
-        Request request;
-        Response response;
-
-            body = new FormBody.Builder()
-                    .add("user","nleal")
-                    .add("time",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString())
-                    .add("lat","0")
-                    .add("lng","0").build();
-            request = new Request.Builder()
-                    .url("http://192.168.0.14/validar/post.php")
-                    .post(body)
-                    .build();
-            try {
-                response = client.newCall(request).execute();
-                Log.v("Brandon-lp","Response -> "+response.body().string());
-            } catch (IOException e) {
-                Log.v("Brandon-lp","Exploto en el call");
-                e.printStackTrace();
-            }
-
-    }*/
 
     public void execute(){
         class Send extends AsyncTask<Void, Void, String>{
+
+            private boolean send(){
+
+                List<MarkerdBEntity> list = dbController.getAllNoSend();
+                Request request;
+                Response response;
+                try {
+                    for (MarkerdBEntity m:list) {
+                        String url = String.format("http://190.144.171.172/tracker/store.php?user=%s&time=%s&lat=%s&lng=%s"
+                                ,"nleal",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString(),m.getLatitude(),m.getLongitude());
+                        Log.v("Brandon-lp","La url quedo -> "+url);
+                        request = new Request.Builder()
+                                .url(url)
+                                .get()
+                                .build();
+
+                        response = client.newCall(request).execute();
+                        Log.v("Brandon-lp","Response -> "+response.body().string());
+                    }
+                    return true;
+                }catch (IOException e) {
+                    Log.v("Brandon-lp","Exploto en el call");
+                    e.printStackTrace();
+                    return false;
+                }catch (NullPointerException e){
+                    Log.v("Brandon-lp","no hay registros");
+                    return false;
+                    //Toast.makeText(context,"No hay registros nuevos",Toast.LENGTH_SHORT).show();
+                }
+
+            }
 
             private ProgressDialog progressDialog;
             @Override
@@ -95,8 +81,9 @@ public class OkPostRequest {
 
             @Override
             protected String doInBackground(Void... voids) {
-                send();
+                if (send())
                 return "Sincronizacion completa";
+                else return "No hay registros nuevos";
             }
 
             @Override
@@ -109,7 +96,9 @@ public class OkPostRequest {
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
+                dbController.changeStatus();
                 progressDialog.cancel();
+                if (!s.isEmpty() && s!=null)
                 Toast.makeText(context,s,Toast.LENGTH_SHORT).show();
             }
         }
