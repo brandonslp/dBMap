@@ -10,6 +10,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -108,6 +109,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void addMarkers(){
+        try{
         DbController dbController = new DbController(this);
         list = dbController.getAll();
         for (MarkerdBEntity m:list){
@@ -121,6 +123,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             addRadius(new LatLng(Double.valueOf(m.getLatitude()), Double.valueOf(m.getLongitude())));
         }
         setOnclick();
+        }catch (NullPointerException e){
+            Toast.makeText(this,"No hay registros",Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setOnclick(){

@@ -10,6 +10,8 @@ import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,10 +23,14 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
 import java.io.IOException;
 import java.util.Formatter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private MediaRecorder mediaRecorder;
     private Button btnrecorder;
@@ -35,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     int time = 5000;
     Ear ear;
     private GetPreferences preferences;
+    private GoogleApiClient googleApiClient;
+    private Location mylocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,44 +57,47 @@ public class MainActivity extends AppCompatActivity {
         btnrecorder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (ear == null || !listening) {
-                    listening = true;
-                    ear = new Ear();
-                    ear.execute();
-                    btnrecorder.setText("Recording...");
-                } else {
-                    /*ear.cancel(true);
-                    listening = false;
-                    stop();*/
-                    listening = false;
-                    btnrecorder.setText("Record");
-                    //stop();
-                    ear = null;
-                }
+                startRecord();
             }
         });
+
+        googleApiClient = new GoogleApiClient.Builder(this)
+                                .addApi(LocationServices.API)
+                                .addConnectionCallbacks(this)
+                                .addOnConnectionFailedListener(this).build();
     }
 
 
-    //utilizando el temporizador se genera algun problema al detener el asyntask
-    public void startRecord(final long finish, long tick) {
-        CountDownTimer t = new CountDownTimer(finish, tick) {
-            @Override
-            public void onTick(long l) {
-                listening = true;
-                ear = new Ear();
-                ear.execute();
-                btnrecorder.setText("Recording...");
-            }
 
-            @Override
-            public void onFinish() {
-                ear.cancel(true);
-                stop();
-                ear = null;
+    public void startRecord() {
+        if (ear == null || !listening) {
+            listening = true;
+            ear = new Ear();
+            ear.execute();
+            btnrecorder.setText("Recording...");
+        } else {
+                    /*ear.cancel(true);
+                    listening = false;
+                    stop();*/
+            listening = false;
+            btnrecorder.setText("Record");
+            //stop();
+            ear = null;
+        }
+    }
 
-            }
-        }.start();
+    @Override
+    protected void onStart() {
+        super.onStart();
+        googleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        if (googleApiClient!=null){
+            googleApiClient.disconnect();
+        }
+        super.onStop();
     }
 
     @Override
@@ -126,25 +137,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Location getLocation() {
-        LocationManager locationManager = (LocationManager) getSystemService(this.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria,false);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        if(mylocation!=null)
+            return mylocation;
+        else{
+            Log.v("Brandon-lp","Tambien explota con google api");
             return null;
-        }
-        try{
-            Log.v("Brandon-lp","Location -> "+locationManager.getLastKnownLocation(provider));
-            return locationManager.getLastKnownLocation(provider);
-        }catch (NullPointerException e){
-            Log.v("Brandon-lp","Location -> "+locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER));
-            return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
     }
 
@@ -182,6 +179,33 @@ public class MainActivity extends AppCompatActivity {
     public double sounddB(){
         return (20 * Math.log10(getAmplitude() / Double.parseDouble(preferences.getAmplitudeReference())));
     }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            Log.v("Brandon-lp","No hay permisos");
+            return;
+        }
+        mylocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
     public class Ear extends AsyncTask<Void, Double, Void>{
         @Override
         protected void onCancelled() {
