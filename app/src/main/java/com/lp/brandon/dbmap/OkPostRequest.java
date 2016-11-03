@@ -35,28 +35,50 @@ public class OkPostRequest {
 
     private void send(){
         List<MarkerdBEntity> list = dbController.getAll();
-        RequestBody body;
         Request request;
         Response response;
         for (MarkerdBEntity m:list) {
-            body = new FormBody.Builder()
-                        .add("user","nleal")
-                        .add("time",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString())
-                        .add("lat",m.getLatitude())
-                        .add("lng",m.getLongitude()).build();
+            String url = String.format("http://190.144.171.172/tracker/store.php?user=%s&time=%s&lat=%s&lng=%s"
+            ,"nleal",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString(),m.getLatitude(),m.getLongitude());
+            Log.v("Brandon-lp","La url quedo -> "+url);
             request = new Request.Builder()
-                            .url("http://190.144.171.172/tracker/store.php")
-                            .post(body)
+                            .url(url)
+                            .get()
                             .build();
             try {
                 response = client.newCall(request).execute();
-                Log.v("Brandon-lp","Response -> "+response.body());
+                Log.v("Brandon-lp","Response -> "+response.body().string());
             } catch (IOException e) {
                 Log.v("Brandon-lp","Exploto en el call");
                 e.printStackTrace();
             }
         }
     }
+
+    /*private void send(){
+
+        RequestBody body;
+        Request request;
+        Response response;
+
+            body = new FormBody.Builder()
+                    .add("user","nleal")
+                    .add("time",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString())
+                    .add("lat","0")
+                    .add("lng","0").build();
+            request = new Request.Builder()
+                    .url("http://192.168.0.14/validar/post.php")
+                    .post(body)
+                    .build();
+            try {
+                response = client.newCall(request).execute();
+                Log.v("Brandon-lp","Response -> "+response.body().string());
+            } catch (IOException e) {
+                Log.v("Brandon-lp","Exploto en el call");
+                e.printStackTrace();
+            }
+
+    }*/
 
     public void execute(){
         class Send extends AsyncTask<Void, Void, String>{
