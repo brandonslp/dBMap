@@ -42,12 +42,12 @@ public class Sync {
     private void cargar(){
         try{
             List<MarkerdBEntity> entities= controller.getAllNoSend();
-            items = new ArrayList<>();
+            items = new ArrayList<List<NameValuePair>>();
             for (MarkerdBEntity m : entities){
-                nameValuePairList = new ArrayList<>();
+                nameValuePairList = new ArrayList<NameValuePair>();
                 nameValuePairList.add(new BasicNameValuePair("user","nleal"));
-                nameValuePairList.add(new BasicNameValuePair("time",new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()).toString()));
-                Log.v("Brandon-lp","time -> "+new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()).toString());
+                nameValuePairList.add(new BasicNameValuePair("time",new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString()));
+                Log.v("Brandon-lp","time -> "+new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString());
                 nameValuePairList.add(new BasicNameValuePair("lat",m.getLatitude()));
                 nameValuePairList.add(new BasicNameValuePair("lng",m.getLongitude()));
                 items.add(nameValuePairList);
@@ -82,8 +82,9 @@ public class Sync {
                 HttpEntity entity;
                 for (List<NameValuePair> x :items) {
                     try {
-                        Log.v("Brandon-lp","Enviando -> "+ x.get(0).getName() + "->"+x.get(0).getValue());
+                        Log.v("Brandon-lp","Enviando -> "+ x.get(0).toString() + "->"+x.get(0).getValue());
                         httpPost.setEntity(new UrlEncodedFormEntity(x));
+                        Log.v("Brandon-lp","URI -> "+ httpPost.getURI());
                         response = httpClient.execute(httpPost);
                         entity = response.getEntity();
                         Log.v("Brandon-lp","El resultado fue -> "+ EntityUtils.toString(entity));

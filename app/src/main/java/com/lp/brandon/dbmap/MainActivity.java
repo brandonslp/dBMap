@@ -3,18 +3,15 @@ package com.lp.brandon.dbmap;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
-import android.os.CountDownTimer;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +25,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.IOException;
-import java.util.Formatter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
@@ -38,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private ProgressBar pb;
     private TextView txtdB;
     private DbController dbController;
-    int time = 5000;
     Ear ear;
     private GetPreferences preferences;
     private GoogleApiClient googleApiClient;
@@ -53,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         txtdB = (TextView) findViewById(R.id.txtdB);
         preferences = new GetPreferences(this);
         dbController = new DbController(this);
-        //time=Integer.parseInt(preferences.getStartTime());//en caso de que se utilice el contador para la captura
+        //Log.v("Brandon-lp","time -> "+new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()).toString());
         btnrecorder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -153,16 +150,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId()==R.id.menu_settings){
-            Intent i = new Intent().setClass(MainActivity.this, Settings.class);
-            startActivity(i);
-        }
-        if (item.getItemId()==R.id.menu_loadmap){
-            Intent i = new Intent().setClass(MainActivity.this, MapsActivity.class);
-            startActivity(i);
-        }
-        if (item.getItemId()==R.id.menu_sync){
-            new Sync(this).sync_news();
+        if(!listening){
+            if (item.getItemId()==R.id.menu_settings){
+                Intent i = new Intent().setClass(MainActivity.this, Settings.class);
+                startActivity(i);
+            }
+            if (item.getItemId()==R.id.menu_loadmap){
+                Intent i = new Intent().setClass(MainActivity.this, MapsActivity.class);
+                startActivity(i);
+            }
+            if (item.getItemId()==R.id.menu_sync){
+                new Sync(this).sync_news();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
